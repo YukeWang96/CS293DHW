@@ -52,6 +52,12 @@
         <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter"/>
         <antcall target="build"/>
     </target>
+    <target name="MyCustomAnalyzer">
+        <java classname="MyCustomAnalyzer" failonerror="true" fork="yes">
+            <jvmarg line="-Xmx1g"/>
+            <classpath refid="PromiseDemo.classpath"/>
+        </java>
+    </target>
     <target name="IndexTREC">
         <java classname="IndexTREC" failonerror="true" fork="yes">
             <jvmarg line="-Xmx1g"/>

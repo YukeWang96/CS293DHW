@@ -55,7 +55,9 @@ public class IndexTREC {
 			System.out.println("Indexing to directory '" + indexPath + "'...");
 
 			Directory dir = FSDirectory.open(Paths.get(indexPath));
-			Analyzer analyzer = new StandardAnalyzer();
+			// uncomment below for not using stemmer
+			// Analyzer analyzer = new StandardAnalyzer(); 
+			Analyzer analyzer = new MyCustomAnalyzer();
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 
 			if (create) {

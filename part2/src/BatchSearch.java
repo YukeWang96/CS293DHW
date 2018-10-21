@@ -78,7 +78,9 @@ public class BatchSearch {
 		IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(simfn);
-		Analyzer analyzer = new StandardAnalyzer();
+		// uncomment below for not using stemmer
+		// Analyzer analyzer = new StandardAnalyzer(); 
+		Analyzer analyzer = new MyCustomAnalyzer();
 		
 		BufferedReader in = null;
 		if (queries != null) {
@@ -87,6 +89,9 @@ public class BatchSearch {
 			in = new BufferedReader(new InputStreamReader(new FileInputStream("queries"), "UTF-8"));
 		}
 		QueryParser parser = new QueryParser(field, analyzer);
+
+		long elaspedTime = 0;
+		long ctr = 0;
 		while (true) {
 			String line = in.readLine();
 
@@ -102,9 +107,17 @@ public class BatchSearch {
 			String[] pair = line.split(" ", 2);
 			Query query = parser.parse(pair[1]);
 
+			ctr = ctr + 1;
+			long startTime = System.currentTimeMillis();
 			doBatchSearch(in, searcher, pair[0], query, simstring);
+			long stopTime = System.currentTimeMillis();
+			elaspedTime = elaspedTime + (stopTime - startTime);
+			
 		}
+		double avgQueryTime = elaspedTime/(1.0*ctr);
+		//System.out.println("Average query processing time: "+avgQueryTime+"ms");
 		reader.close();
+		
 	}
 
 	/**
