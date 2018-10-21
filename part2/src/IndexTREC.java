@@ -21,12 +21,13 @@ public class IndexTREC {
 	
 	public static void main(String[] args) {
 		String usage = "java org.apache.lucene.demo.IndexFiles"
-				+ " [-index INDEX_PATH] [-docs DOCS_PATH] [-update]\n\n"
+				+ " [-index INDEX_PATH] [-docs DOCS_PATH] [-update] [-stem]\n\n"
 				+ "This indexes the documents in DOCS_PATH, creating a Lucene index"
 				+ "in INDEX_PATH that can be searched with SearchFiles";
 		String indexPath = "index";
 		String docsPath = null;
 		boolean create = true;
+		boolean stem = false;
 		for(int i=0;i<args.length;i++) {
 			if ("-index".equals(args[i])) {
 				indexPath = args[i+1];
@@ -34,6 +35,8 @@ public class IndexTREC {
 			} else if ("-docs".equals(args[i])) {
 				docsPath = args[i+1];
 				i++;
+			} else if ("-stem".equals(args[i])) {
+			    stem = true;
 			} else if ("-update".equals(args[i])) {
 				create = false;
 			}
@@ -55,9 +58,13 @@ public class IndexTREC {
 			System.out.println("Indexing to directory '" + indexPath + "'...");
 
 			Directory dir = FSDirectory.open(Paths.get(indexPath));
-			// uncomment below for not using stemmer
-			// Analyzer analyzer = new StandardAnalyzer(); 
-			Analyzer analyzer = new MyCustomAnalyzer();
+			Analyzer analyzer;
+			if (stem){
+			    analyzer = new MyCustomAnalyzer();
+			}
+			else{
+			    analyzer = new StandardAnalyzer();
+			}
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 
 			if (create) {

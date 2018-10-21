@@ -28,7 +28,7 @@ public class BatchSearch {
 	/** Simple command-line based search demo. */
 	public static void main(String[] args) throws Exception {
 		String usage =
-				"Usage:\tjava BatchSearch [-index dir] [-simfn similarity] [-field f] [-queries file]";
+				"Usage:\tjava BatchSearch [-index dir] [-simfn similarity] [-field f] [-stem] [-conjunction] [-queries file]";
 		if (args.length > 0 && ("-h".equals(args[0]) || "-help".equals(args[0]))) {
 			System.out.println(usage);
 			System.out.println("Supported similarity functions:\ndefault: DefaultSimilary (tfidf)\n");
@@ -39,6 +39,8 @@ public class BatchSearch {
 		String field = "contents";
 		String queries = null;
 		String simstring = "default";
+		boolean stem = false;
+		boolean conjunction = false;
 
 		for(int i = 0;i < args.length;i++) {
 			if ("-index".equals(args[i])) {
@@ -50,6 +52,10 @@ public class BatchSearch {
 			} else if ("-queries".equals(args[i])) {
 				queries = args[i+1];
 				i++;
+			} else if ("-stem".equals(args[i])) {
+			    stem = true;
+			} else if ("-conjunction".equals(args[i])) {
+			    conjunction = true;
 			} else if ("-simfn".equals(args[i])) {
 				simstring = args[i+1];
 				i++;
@@ -78,9 +84,14 @@ public class BatchSearch {
 		IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
 		IndexSearcher searcher = new IndexSearcher(reader);
 		searcher.setSimilarity(simfn);
-		// uncomment below for not using stemmer
-		// Analyzer analyzer = new StandardAnalyzer(); 
-		Analyzer analyzer = new MyCustomAnalyzer();
+
+		Analyzer analyzer;
+		if (stem){
+		    analyzer = new MyCustomAnalyzer();
+		}
+		else{
+		    analyzer = new StandardAnalyzer();
+		}
 		
 		BufferedReader in = null;
 		if (queries != null) {
@@ -89,6 +100,9 @@ public class BatchSearch {
 			in = new BufferedReader(new InputStreamReader(new FileInputStream("queries"), "UTF-8"));
 		}
 		QueryParser parser = new QueryParser(field, analyzer);
+		if(conjunction){
+		    parser.setDefaultOperator(QueryParser.Operator.AND);
+		}
 
 		long elaspedTime = 0;
 		long ctr = 0;

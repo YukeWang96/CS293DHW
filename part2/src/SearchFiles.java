@@ -27,7 +27,7 @@ public class SearchFiles {
   /** Simple command-line based search demo. */
   public static void main(String[] args) throws Exception {
     String usage =
-      "Usage:\tjava SearchFiles [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-raw] [-paging hitsPerPage]\n\nSee http://lucene.apache.org/core/4_1_0/demo/ for details.";
+      "Usage:\tjava SearchFiles [-index dir] [-field f] [-repeat n] [-queries file] [-query string] [-stem] [-conjunction] [-raw] [-paging hitsPerPage]\n\nSee http://lucene.apache.org/core/4_1_0/demo/ for details.";
     if (args.length > 0 && ("-h".equals(args[0]) || "-help".equals(args[0]))) {
       System.out.println(usage);
       System.exit(0);
@@ -40,6 +40,8 @@ public class SearchFiles {
     boolean raw = false;
     String queryString = null;
     int hitsPerPage = 10;
+    boolean stem = false;
+    boolean conjunction = false;
     
     for(int i = 0;i < args.length;i++) {
       if ("-index".equals(args[i])) {
@@ -59,6 +61,10 @@ public class SearchFiles {
         i++;
       } else if ("-raw".equals(args[i])) {
         raw = true;
+      } else if ("-stem".equals(args[i])) {
+        stem = true;
+      } else if ("-conjunction".equals(args[i])) {
+        conjunction = true;
       } else if ("-paging".equals(args[i])) {
         hitsPerPage = Integer.parseInt(args[i+1]);
         if (hitsPerPage <= 0) {
@@ -71,9 +77,13 @@ public class SearchFiles {
     
     IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
     IndexSearcher searcher = new IndexSearcher(reader);
-    // uncomment below for not using stemmer
-    // Analyzer analyzer = new StandardAnalyzer(); 
-    Analyzer analyzer = new MyCustomAnalyzer();
+    Analyzer analyzer;
+    if (stem){
+	analyzer = new MyCustomAnalyzer();
+    }
+    else{
+	analyzer = new StandardAnalyzer();
+    }
 
     BufferedReader in = null;
     if (queries != null) {
@@ -82,6 +92,11 @@ public class SearchFiles {
       in = new BufferedReader(new InputStreamReader(System.in, "UTF-8"));
     }
     QueryParser parser = new QueryParser(field, analyzer);
+    if(conjunction){
+	parser.setDefaultOperator(QueryParser.Operator.AND);
+    }
+    
+    
     while (true) {
       if (queries == null && queryString == null) {                        // prompt the user
         System.out.println("Enter query: ");
