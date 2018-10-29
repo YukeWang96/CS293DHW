@@ -60,6 +60,7 @@ public class IndexTREC {
 			Directory dir = FSDirectory.open(Paths.get(indexPath));
 			Analyzer analyzer;
 			if (stem){
+			    // stem and stopword removal
 			    analyzer = new MyCustomAnalyzer();
 			}
 			else{

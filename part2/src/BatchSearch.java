@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.nio.file.Paths;
+import java.lang.Float;
+import java.lang.Integer;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -41,6 +43,17 @@ public class BatchSearch {
 		String simstring = "default";
 		boolean stem = false;
 		boolean conjunction = false;
+		float k1 = (float)1.2; // default
+		float b = (float) 0.75; // default
+		int i1 = 2; // default
+		int i2 = 0; // default
+		int i3 = 1; // default
+
+		BasicModel p1[] = {new BasicModelBE(), new BasicModelG(),
+				   new BasicModelP(), new BasicModelD(), new BasicModelIn(),
+				   new BasicModelIne()};
+		AfterEffect p2[] = {new AfterEffectL(), new AfterEffectB()};
+		Normalization p3[] = {new NormalizationH1(), new NormalizationH2(), new NormalizationH3(), new NormalizationZ()};
 
 		for(int i = 0;i < args.length;i++) {
 			if ("-index".equals(args[i])) {
@@ -56,6 +69,19 @@ public class BatchSearch {
 			    stem = true;
 			} else if ("-conjunction".equals(args[i])) {
 			    conjunction = true;
+			} else if ("-simfnGrid".equals(args[i])) {
+				simstring = args[i+1];
+				i+=2;
+				if("bm25".equals(simstring)){
+				    k1 = Float.parseFloat(args[i++]);
+				    b = Float.parseFloat(args[i++]);
+				}
+				else if("dfr".equals(simstring)) {
+				    //System.out.println(simstring+" "+args[i]);
+				    i1 = Integer.parseInt(args[i++]);
+				    i2 = Integer.parseInt(args[i++]);
+				    i3 = Integer.parseInt(args[i++]);
+				}
 			} else if ("-simfn".equals(args[i])) {
 				simstring = args[i+1];
 				i++;
@@ -66,9 +92,9 @@ public class BatchSearch {
 		if ("default".equals(simstring)) {
 			simfn = new ClassicSimilarity();
 		} else if ("bm25".equals(simstring)) {
-			simfn = new BM25Similarity();
+		    simfn = new BM25Similarity(k1,b);
 		} else if ("dfr".equals(simstring)) {
-			simfn = new DFRSimilarity(new BasicModelP(), new AfterEffectL(), new NormalizationH2());
+			simfn = new DFRSimilarity(p1[i1], p2[i2], p3[i3]);
 		} else if ("lm".equals(simstring)) {
 			simfn = new LMDirichletSimilarity();
 		}
@@ -87,6 +113,7 @@ public class BatchSearch {
 
 		Analyzer analyzer;
 		if (stem){
+		    // stem and stopword removal
 		    analyzer = new MyCustomAnalyzer();
 		}
 		else{
@@ -101,6 +128,7 @@ public class BatchSearch {
 		}
 		QueryParser parser = new QueryParser(field, analyzer);
 		if(conjunction){
+		    // for conjunctive queries
 		    parser.setDefaultOperator(QueryParser.Operator.AND);
 		}
 
@@ -129,6 +157,7 @@ public class BatchSearch {
 			
 		}
 		double avgQueryTime = elaspedTime/(1.0*ctr);
+		// uncomment below to get the query processing time
 		//System.out.println("Average query processing time: "+avgQueryTime+"ms");
 		reader.close();
 		
