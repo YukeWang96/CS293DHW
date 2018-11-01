@@ -48,6 +48,7 @@ public class BatchSearch {
 		int i1 = 2; // default
 		int i2 = 0; // default
 		int i3 = 1; // default
+		boolean report = false;
 
 		BasicModel p1[] = {new BasicModelBE(), new BasicModelG(),
 				   new BasicModelP(), new BasicModelD(), new BasicModelIn(),
@@ -69,6 +70,8 @@ public class BatchSearch {
 			    stem = true;
 			} else if ("-conjunction".equals(args[i])) {
 			    conjunction = true;
+			} else if ("-report".equals(args[i])) {
+			    report = true;
 			} else if ("-simfnGrid".equals(args[i])) {
 				simstring = args[i+1];
 				i+=2;
@@ -151,14 +154,14 @@ public class BatchSearch {
 
 			ctr = ctr + 1;
 			long startTime = System.currentTimeMillis();
-			doBatchSearch(in, searcher, pair[0], query, simstring);
+			doBatchSearch(in, searcher, pair[0], query, simstring, report);
 			long stopTime = System.currentTimeMillis();
 			elaspedTime = elaspedTime + (stopTime - startTime);
 			
 		}
 		double avgQueryTime = elaspedTime/(1.0*ctr);
-		// uncomment below to get the query processing time
-		//System.out.println("Average query processing time: "+avgQueryTime+"ms");
+		if(report)
+		    System.out.println("Average query processing time: "+avgQueryTime+"ms");
 		reader.close();
 		
 	}
@@ -166,7 +169,7 @@ public class BatchSearch {
 	/**
 	 * This function performs a top-1000 search for the query as a basic TREC run.
 	 */
-	public static void doBatchSearch(BufferedReader in, IndexSearcher searcher, String qid, Query query, String runtag)	 
+    public static void doBatchSearch(BufferedReader in, IndexSearcher searcher, String qid, Query query, String runtag, boolean report)	 
 			throws IOException {
 
 		// Collect enough docs to show 5 pages
@@ -187,7 +190,8 @@ public class BatchSearch {
 				continue;
 			}
 			seen.put(docno, docno);
-			System.out.println(qid+" Q0 "+docno+" "+i+" "+hits[i].score+" "+runtag);
+			if(!report)
+			    System.out.println(qid+" Q0 "+docno+" "+i+" "+hits[i].score+" "+runtag);
 		}
 	}
 }
